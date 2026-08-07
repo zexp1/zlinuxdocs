@@ -1,0 +1,163 @@
+.TH ZLINUXDOCS 1 "2026" "zlinuxdocs @VERSION@" "User Commands"
+.SH NAME
+zlinuxdocs, zld \- inspect, repair, convert and validate .docx document sets
+.SH SYNOPSIS
+.B zlinuxdocs
+.I COMMAND
+[\fIFILE\fR] [\fIOPTIONS\fR]
+.br
+.B zld
+.I COMMAND
+[\fIFILE\fR] [\fIOPTIONS\fR]
+.SH DESCRIPTION
+.B zlinuxdocs
+is for people who are sent Word documents and have to turn them into PDFs that
+will not be handed back at the counter.
+.PP
+Run
+.B zlinuxdocs quickstart
+for a five-command walkthrough that uses the example documents installed at
+.IR /usr/share/zlinuxdocs/samples/ ,
+so it works before you have a file of your own.
+.PP
+.B zld
+is a short alias for
+.BR zlinuxdocs .
+The two are the same program.
+.SH COMMANDS
+.TP
+.B inspect \fIFILE.docx\fR
+Say what is really inside a Word document: paragraphs, tables, real headings,
+look-alike headings and [V] markers. Read-only.
+Also written as \fBinfo\fR or \fBshow\fR.
+.TP
+.B fix\-headings \fIFILE.docx\fR \fB\-o\fR \fIOUT.docx\fR
+Turn text that only looks like a heading ("1 - Introduction", "2.1 Scope",
+"ANNEXURE III") into a real heading carrying an outline level, which is what
+makes bookmarks appear in an exported PDF. Idempotent: a second run reports
+0 promotions. Never overwrites the input unless \fB\-\-in\-place\fR is given,
+and never replaces an existing output without \fB\-\-force\fR.
+Also written as \fBfix\fR or \fBrepair\fR.
+.TP
+.B convert \fIFILE\fR \fB\-o\fR \fIOUT.pdf\fR
+Make a PDF through LibreOffice with bookmarks and a searchable text layer.
+Can also produce .docx, .odt, .txt or .html; giving an old .doc file and an
+\fB\-o\fR ending in .docx modernises it. Requires the
+.B libreoffice\-writer
+package.
+Also written as \fBpdf\fR or \fBto\-pdf\fR.
+.TP
+.B validate \fIFILE.pdf\fR
+Check the PDF has pages, bookmarks, selectable text, no leftover Word field
+codes and a sound internal structure. Exits non-zero when any check fails, so
+it can gate a script. Read-only.
+Also written as \fBcheck\fR or \fBverify\fR.
+.TP
+.B markers \fIFILE.docx\fR
+List the [V] verification marks a reviewer left behind, in paragraphs and
+inside table cells. Read-only.
+Also written as \fBflags\fR or \fBtodo\fR.
+.TP
+.B profile
+Show or export the house print settings (paper, margins, fonts, contents page,
+PDF options). Also written as \fBsettings\fR.
+.TP
+.B quickstart
+A numbered, copy-pasteable walkthrough using the shipped examples.
+.TP
+.B examples
+Real command lines you can copy and paste.
+.TP
+.B samples
+List the example documents installed with the program.
+.SH OPTIONS
+Each command has its own options; run
+.B zlinuxdocs help \fICOMMAND\fR
+to see them. Common ones:
+.TP
+.B \-\-dry\-run
+Say what would happen and write nothing. Available on every command that writes.
+.TP
+.B \-\-force
+Allow an existing output file to be replaced. Without it, an existing output is
+never overwritten.
+.TP
+.B \-\-in\-place
+Replace the original file. A .bak copy is kept beside it.
+.TP
+.B \-\-verbose ", " \-v
+Show the technical detail. The default output stays plain.
+.TP
+.B \-\-examples
+Print example command lines for that command and exit.
+.TP
+.B \-\-version
+Print the version.
+.SH EXIT STATUS
+.TP
+.B 0
+Success. For
+.BR validate ,
+the PDF passed every check.
+.TP
+.B 1
+The command could not do what was asked, or
+.B validate
+found a problem. A plain-language explanation is printed to standard error.
+.TP
+.B 2
+The command line was not understood (unknown command, missing argument).
+.TP
+.B 3
+The program's own files are missing; reinstall the package.
+.SH DEPENDENCIES
+.B python3
+and
+.B poppler\-utils
+are required. Install
+.B libreoffice\-writer
+to use
+.BR convert ,
+and
+.B qpdf
+for the deep structural check in
+.BR validate .
+The Python libraries python-docx, PyYAML and pypdf are vendored under
+.I /usr/share/zlinuxdocs/vendor/
+and are not taken from the system.
+.SH PDF/A
+.B PDF/A conformance is not claimed.
+.B convert \-\-pdfa
+asks LibreOffice for an archival flavour, but nothing in this program can
+verify conformance; that needs a dedicated validator such as veraPDF. Do not
+describe output from this program as certified PDF/A.
+.SH PRIVACY
+This program makes no network connections and collects no telemetry. Your
+documents never leave the machine. The package installs no maintainer scripts.
+.SH FILES
+.TP
+.I /usr/share/zlinuxdocs/samples/
+Example documents. See the README.md beside them.
+.TP
+.I /usr/share/zlinuxdocs/profiles/house_profile.yaml
+The house print profile.
+.TP
+.I /usr/share/zlinuxdocs/vendor/
+Vendored Python libraries and their licences.
+.SH EXAMPLES
+.PP
+.nf
+cd /tmp
+cp "/usr/share/zlinuxdocs/samples/plain-no-headings.docx" "My Report.docx"
+zlinuxdocs inspect      "My Report.docx"
+zlinuxdocs fix-headings "My Report.docx" -o "My Report (fixed).docx"
+zlinuxdocs convert      "My Report (fixed).docx" -o "My Report.pdf"
+zlinuxdocs validate     "My Report.pdf"
+.fi
+.SH SEE ALSO
+.BR soffice (1),
+.BR pdfinfo (1),
+.BR pdftotext (1),
+.BR qpdf (1)
+.SH BUGS
+https://github.com/zexp1/zlinuxdocs/issues

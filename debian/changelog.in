@@ -1,0 +1,16 @@
+zlinuxdocs (@VERSION@) unstable; urgency=low
+
+  * First release.
+  * Six commands: inspect, fix-headings, convert, validate, markers, profile.
+  * Short aliases: zld for the program; info/show, fix/repair, pdf/to-pdf,
+    check/verify, flags/todo, settings for the commands.
+  * fix-headings promotes look-alike headings to real heading styles WITH
+    outline levels, which is what makes PDF bookmarks appear. Idempotent.
+  * validate exits non-zero on a PDF that is not fit to send.
+  * Eight example documents installed under /usr/share/zlinuxdocs/samples/.
+  * python-docx, PyYAML, pypdf and typing_extensions are vendored under
+    /usr/share/zlinuxdocs/vendor/ with their licences.
+  * No maintainer scripts. No network access. No telemetry.
+  * PDF/A conformance is not claimed.
+
+ -- zlinuxdocs contributors <noreply@github.com>  @DATE@

@@ -1,0 +1,218 @@
+# =============================================================================
+#  house_profile.yaml  ·  zlinuxdocs house print profile
+#
+#  The page setup, typography and PDF options used for a real 16-volume
+#  government Detailed Project Report submission (A4, bound, 57-150 pages per
+#  volume, 40-128 bookmarks per volume).
+#
+#  Read by:  zlinuxdocs profile        (to show it)
+#            zlinuxdocs convert        (the `pdf:` block builds the LibreOffice
+#                                       export options)
+#
+#  Copy it out and adjust it:
+#      zlinuxdocs profile -o my-profile.yaml
+#      zlinuxdocs convert report.docx -o report.pdf --profile-file my-profile.yaml
+#
+#  HONESTY NOTE ON PDF/A
+#  ---------------------
+#  `pdf.standard` below is what gets REQUESTED from LibreOffice when you pass
+#  --pdfa. Requesting is not conforming. This program cannot verify PDF/A
+#  conformance; that needs a dedicated validator such as veraPDF. Do not
+#  describe output from this tool as certified PDF/A.
+# =============================================================================
+
+version: 1
+
+# Which named profile is used when you do not say.
+profile: release
+
+# =============================================================================
+#  1 · DOCUMENT — geometry, type, spacing, running heads, contents page
+# =============================================================================
+document:
+
+  page:
+    size: a4
+    orientation: portrait
+    margins:
+      top: 25mm
+      right: 25mm
+      bottom: 25mm
+      left: 25mm
+      header: 15mm
+      footer: 15mm
+    gutter: 10mm            # extra inner margin so binding does not eat text
+    mirrorMargins: false
+    columns: 1
+
+  type:
+    bodyFont: Liberation Serif
+    headingFont: Liberation Sans
+    monoFont: Liberation Mono
+    bodySize: 11pt
+    lineHeight: 1.5
+    justify: true
+    hyphenate: true
+    language: en-GB
+    ligatures: true
+
+  spacing:
+    paragraphBefore: 0
+    paragraphAfter: 8pt
+    firstLineIndent: 0
+    listItemAfter: 3pt
+    tableCellPadding: 3pt
+    orphans: 2
+    widows: 2
+    keepHeadingWithNext: true
+    keepTableRowsTogether: true
+    keepFiguresWithCaption: true
+
+  headings:
+    numbering:
+      enabled: true
+      format: decimal
+      separator: '.'
+      startLevel: 1
+      maxLevel: 3
+      includeInToc: true
+    levels:
+      1: { size: 16pt, weight: bold, spaceBefore: 18pt, spaceAfter: 6pt, pageBreakBefore: true }
+      2: { size: 14pt, weight: bold, spaceBefore: 14pt, spaceAfter: 4pt }
+      3: { size: 12pt, weight: bold, spaceBefore: 12pt, spaceAfter: 3pt }
+      4: { size: 11pt, weight: bold, spaceBefore: 10pt, spaceAfter: 2pt }
+      5: { size: 10pt, weight: bold, spaceBefore: 8pt,  spaceAfter: 2pt }
+
+  headerFooter:
+    header:
+      enabled: true
+      left: '{title}'
+      font: Liberation Sans
+      size: 9pt
+    footer:
+      enabled: true
+      right: 'Page {page} of {pages}'
+      font: Liberation Sans
+      size: 9pt
+    differentFirstPage: false
+
+  toc:
+    enabled: true
+    title: Table of Contents
+    levels: 3
+    showNumbers: true
+    dotLeader: true
+    pageNumbers: true
+    hyperlink: true
+    updateOnOpen: true
+
+  tables:
+    repeatHeaderRows: true
+    allowRowSplit: false
+    borderWidth: 0.5pt
+    borderColor: '#000000'
+    headerFill: '#F0F0F0'
+    zebra: false
+
+  figures:
+    captionPosition: below
+    autoNumber: true
+    figurePrefix: 'Figure {n}: '
+    tablePrefix: 'Table {n}: '
+    maxWidth: 6in
+    defaultDpi: 150
+
+  revisions:
+    view: accepted
+    showComments: false
+    showHiddenText: false
+
+# =============================================================================
+#  2 · PDF — how the PDF is made
+# =============================================================================
+pdf:
+  engine: libreoffice
+  sofficeBinary: soffice
+  timeoutSeconds: 300
+  isolatedProfile: true       # a throw-away LibreOffice profile per run
+
+  # Requested ONLY when --pdfa is passed. Requesting is not conforming.
+  standard: pdfa-2b
+
+  taggedPdf: true             # accessibility structure
+  exportBookmarks: true       # the clickable chapter list — the whole point
+  bookmarkLevels: 9
+  exportPlaceholders: false
+  exportHiddenText: false
+  exportNotes: false
+  exportEmptyPages: false
+
+  images:
+    compression: lossless
+    jpegQuality: 90
+    downsample: false
+    dpi: 300
+    keepVectorsVector: true
+
+  fonts:
+    embed: true
+    embedOnlyUsedSubsets: true
+    embedStandardFonts: true
+
+  initialView:
+    magnification: fitWidth
+    pageLayout: singlePage
+    openOutline: true
+    displayDocTitle: true
+
+  metadata:
+    useDocumentProperties: true
+    creator: 'zlinuxdocs house print profile'
+
+# =============================================================================
+#  3 · PROFILES — named variations, merged over everything above
+# =============================================================================
+profiles:
+
+  release:
+    description: Clean submission copy. No watermark. This is the default.
+    watermark:
+      enabled: false
+    pdf:
+      exportBookmarks: true
+      taggedPdf: true
+
+  draft:
+    description: Internal review copy, marked DRAFT, lighter images.
+    watermark:
+      enabled: true
+      text: DRAFT
+      opacity: 0.12
+      angle: 45
+    pdf:
+      images:
+        compression: lossy
+        jpegQuality: 70
+        downsample: true
+        dpi: 150
+
+  archive:
+    description: Long-term copy. Asks for PDF/A-2b (REQUESTED, NOT VERIFIED).
+    pdf:
+      standard: pdfa-2b
+      fonts:
+        embed: true
+        embedOnlyUsedSubsets: false
+      images:
+        compression: lossless
+        downsample: false
+
+  screen:
+    description: Small file for email, still searchable and bookmarked.
+    pdf:
+      standard: none
+      images:
+        compression: lossy
+        jpegQuality: 75
+        downsample: true
+        dpi: 120

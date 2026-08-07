@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+zlinuxdocs — inspect, repair, convert and validate .docx document sets.
+
+This is the ONLY place sys.path is touched. Vendored pure-Python dependencies
+(python-docx, PyYAML, pypdf, typing_extensions) live beside the package and are
+prepended to sys.path here, once. No module below this file may edit sys.path.
+
+Makes no network calls. Collects no telemetry.
+"""
+
+import os
+import sys
+
+# ---------------------------------------------------------------------------
+# Locate the install root. Three layouts are supported:
+#   1. source tree : <repo>/bin/zlinuxdocs   -> <repo>/{zlinuxdocs,vendor}
+#   2. prefix-local: <prefix>/bin/zlinuxdocs -> <prefix>/share/zlinuxdocs/...
+#                    (this covers /usr, /usr/local and a staging tree alike)
+#   3. the standard install paths, checked last as a backstop
+# ---------------------------------------------------------------------------
+_SELF = os.path.realpath(__file__)
+_BIN_DIR = os.path.dirname(_SELF)
+_PREFIX = os.path.dirname(_BIN_DIR)
+
+_CANDIDATES = [
+    _PREFIX,                                          # source tree: repo root
+    os.path.join(_PREFIX, "share", "zlinuxdocs"),     # <prefix>/share/zlinuxdocs
+    "/usr/share/zlinuxdocs",
+    "/usr/local/share/zlinuxdocs",
+]
+
+_ROOT = None
+for _c in _CANDIDATES:
+    if os.path.isfile(os.path.join(_c, "zlinuxdocs", "cli.py")):
+        _ROOT = _c
+        break
+
+if _ROOT is None:
+    sys.stderr.write(
+        "zlinuxdocs: the program files are missing.\n"
+        "  Expected to find them in /usr/share/zlinuxdocs/.\n"
+        "  What to do: reinstall the package —\n"
+        "      sudo apt install --reinstall zlinuxdocs\n"
+        "  or reinstall the .deb you downloaded:\n"
+        "      sudo dpkg -i zlinuxdocs_<version>_all.deb\n"
+    )
+    sys.exit(3)
+
+# Vendored deps FIRST so the shipped, tested versions win over anything on the
+# system. This only affects this program; other tools on the machine are
+# untouched because they do not run through this script.
+_VENDOR = os.path.join(_ROOT, "vendor")
+if os.path.isdir(_VENDOR):
+    sys.path.insert(0, _VENDOR)
+sys.path.insert(0, _ROOT)
+
+os.environ["ZLINUXDOCS_ROOT"] = _ROOT
+
+from zlinuxdocs.cli import main  # noqa: E402
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

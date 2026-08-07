@@ -1,0 +1,36 @@
+Package: zlinuxdocs
+Version: VERSION_PLACEHOLDER
+Architecture: all
+Maintainer: zlinuxdocs contributors <noreply@github.com>
+Section: text
+Priority: optional
+Depends: python3 (>= 3.10), python3-lxml, poppler-utils
+Recommends: qpdf, libreoffice-writer
+Description: inspect, repair, convert and validate .docx document sets
+ zlinuxdocs is a command-line tool for people who are sent Word documents and
+ have to turn them into PDFs that will not be handed back at the counter.
+ .
+ It reports what is really inside a .docx (headings, styles, tables, sections,
+ verification markers); repairs documents whose headings only LOOK like
+ headings, so the exported PDF gains a real clickable chapter list; converts to
+ PDF through LibreOffice with bookmarks and a searchable text layer; and checks
+ the resulting PDF, exiting non-zero when it is not fit to send.
+ .
+ Commands:
+  inspect       say what is really inside a Word document
+  fix-headings  turn look-alike headings into real headings (idempotent)
+  convert       make a PDF with a working chapter list (needs LibreOffice)
+  validate      check a PDF is fit to send; exits non-zero when it is not
+  markers       list the [V] verification marks a reviewer left behind
+  profile       show or export the house print settings
+ .
+ Also installed as the short name "zld". Run "zlinuxdocs quickstart" for a
+ five-command walkthrough against the example documents that ship with it.
+ .
+ PDF/A conformance is NOT claimed. The optional --pdfa flag asks LibreOffice
+ for an archival flavour but nothing here can verify conformance; that needs a
+ dedicated validator such as veraPDF.
+ .
+ Works entirely offline. Makes no network connections and collects no
+ telemetry. Installs no maintainer scripts: it is a plain file drop.
+Homepage: https://github.com/zexp1/zlinuxdocs
