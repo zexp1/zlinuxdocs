@@ -26,8 +26,8 @@ A Linux CLI and a Debian package.
 /usr/share/doc/zlinuxdocs/                README, copyright, changelog
 ```
 
-Artifact: `dist/zlinuxdocs_0.1.0_all.deb` — 1,086,356 bytes,
-sha256 `91a1f3cefecb85de82050f13d7c5364b9c91a8e47e0e34b290860b1f12ca15d2`,
+Artifact: `dist/zlinuxdocs_0.1.0_all.deb` — 1,086,680 bytes,
+sha256 `6b626df6ef60b843c8d497ddbc9443f69eb2bb788e4659784668c3a7055e8168`,
 270 entries, a control archive of `control` + `md5sums` only (no maintainer
 scripts), no `__pycache__`, no `.pyc`. `sudo dpkg -V zlinuxdocs` returns 0
 against the installed copy.
@@ -442,7 +442,7 @@ still has the tool; see the tail of `dist/proof.log`.)
 ```
 $ dpkg-deb -I /home/pk/zexp1/zlinuxdocs/dist/zlinuxdocs_0.1.0_all.deb
  new Debian package, version 2.0.
- size 1086356 bytes: control archive=6848 bytes.
+ size 1086680 bytes: control archive=6843 bytes.
     1797 bytes,    36 lines      control
    19429 bytes,   224 lines      md5sums
  Package: zlinuxdocs
@@ -499,18 +499,28 @@ $ basename $DEB                -> zlinuxdocs_0.1.0_all.deb
 **The build is byte-reproducible.** All staged timestamps are normalised to
 `SOURCE_DATE_EPOCH`, which defaults to the date of the immutable release tag
 `v0.1.0` (`1786138306`), so the tag rebuilds to the same bytes however many
-commits land afterwards. Observed:
+commits land afterwards. Observed on this machine, and again in a fresh clone
+of the published repository (`git clone … && ./build-deb.sh`):
 
 ```
 $ ./build-deb.sh >/dev/null && sha256sum dist/zlinuxdocs_0.1.0_all.deb
-91a1f3cefecb85de82050f13d7c5364b9c91a8e47e0e34b290860b1f12ca15d2  dist/zlinuxdocs_0.1.0_all.deb
+6b626df6ef60b843c8d497ddbc9443f69eb2bb788e4659784668c3a7055e8168  dist/zlinuxdocs_0.1.0_all.deb
 $ ./build-deb.sh >/dev/null && sha256sum dist/zlinuxdocs_0.1.0_all.deb
-91a1f3cefecb85de82050f13d7c5364b9c91a8e47e0e34b290860b1f12ca15d2  dist/zlinuxdocs_0.1.0_all.deb
+6b626df6ef60b843c8d497ddbc9443f69eb2bb788e4659784668c3a7055e8168  dist/zlinuxdocs_0.1.0_all.deb
 ```
+
+A fresh `git clone` of https://github.com/zexp1/zlinuxdocs at this commit,
+built with `./build-deb.sh`, produces the identical sha256 — verified by
+comparing the two `.deb` files member by member (`debian-binary`,
+`control.tar.zst` and `data.tar.zst` all byte-identical, including the `ar`
+member timestamps).
 
 `build-deb.sh` also leaves the working tree clean: it stages the checked-in
 example documents rather than regenerating them (`--regen-samples` is opt-in),
-because python-docx stamps the current time into a `.docx` zip.
+because python-docx stamps the current time into a `.docx` zip. Note that
+`README.md` is shipped inside the package, so editing it legitimately changes
+the artifact's hash; `BUILD-RECEIPT.md` is not shipped, so recording a hash
+here does not chase its own tail.
 
 ### D8 PUBLISHED — **GREEN**
 
@@ -528,7 +538,7 @@ $ git ls-remote --heads origin
 [exit 0]
 
 $ gh release view v0.1.0 --repo zexp1/zlinuxdocs --json tagName,url,assets --jq ...
-{"assets":[{"name":"zlinuxdocs_0.1.0_all.deb","size":1086356}],"tag":"v0.1.0","url":"https://github.com/zexp1/zlinuxdocs/releases/tag/v0.1.0"}
+{"assets":[{"name":"zlinuxdocs_0.1.0_all.deb","size":1086680}],"tag":"v0.1.0","url":"https://github.com/zexp1/zlinuxdocs/releases/tag/v0.1.0"}
 [exit 0]
 
 $ gh release view --repo zexp1/zlinuxdocs --json assets --jq '.assets[].name'
@@ -542,9 +552,9 @@ locally built artifact:
 ```
 $ cd /tmp/dlcheck && gh release download v0.1.0 --repo zexp1/zlinuxdocs
 $ sha256sum zlinuxdocs_0.1.0_all.deb
-91a1f3cefecb85de82050f13d7c5364b9c91a8e47e0e34b290860b1f12ca15d2  zlinuxdocs_0.1.0_all.deb
+6b626df6ef60b843c8d497ddbc9443f69eb2bb788e4659784668c3a7055e8168  zlinuxdocs_0.1.0_all.deb
 $ sha256sum dist/zlinuxdocs_0.1.0_all.deb
-91a1f3cefecb85de82050f13d7c5364b9c91a8e47e0e34b290860b1f12ca15d2  dist/zlinuxdocs_0.1.0_all.deb
+6b626df6ef60b843c8d497ddbc9443f69eb2bb788e4659784668c3a7055e8168  dist/zlinuxdocs_0.1.0_all.deb
 $ cmp <downloaded> <local> && echo IDENTICAL
 IDENTICAL
 ```
@@ -750,7 +760,7 @@ machine has **not** been tested.
 * **Repository:** https://github.com/zexp1/zlinuxdocs
 * **Release:** https://github.com/zexp1/zlinuxdocs/releases/tag/v0.1.0
 * **Release asset:** `zlinuxdocs_0.1.0_all.deb`
-  (sha256 `91a1f3cefecb85de82050f13d7c5364b9c91a8e47e0e34b290860b1f12ca15d2`)
+  (sha256 `6b626df6ef60b843c8d497ddbc9443f69eb2bb788e4659784668c3a7055e8168`)
 
 * **Commit pushed:** `695abe4109a6be7f7c477a36151e6b613349b8be` on `main`
   (233 files, 90,850 insertions — the first and only commit; the repository was

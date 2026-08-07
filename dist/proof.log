@@ -1,6 +1,6 @@
 zlinuxdocs 0.1.0 — D1..D8 acceptance run
 artifact: /home/pk/zexp1/zlinuxdocs/dist/zlinuxdocs_0.1.0_all.deb
-date:     2026-08-07T21:38:04Z
+date:     2026-08-07T21:40:55Z
 host:     Linux 6.8.0-137-generic x86_64   python: Python 3.12.3
 
 ########## PRE — the command must NOT exist before we install ##########
@@ -347,7 +347,7 @@ $ cd /tmp/zproof && ZLD=zlinuxdocs bash $SRC/tests/run.sh
 zlinuxdocs test suite
   command:  /usr/bin/zlinuxdocs
   examples: /usr/share/zlinuxdocs/samples
-  workdir:  /tmp/zlinuxdocs-tests-Mo384q
+  workdir:  /tmp/zlinuxdocs-tests-YmBUMN
 
   ... individual checks omitted for length; the summary is authoritative ...
 PASS  the program's own code makes no network calls (/home/pk/zexp1/zlinuxdocs/zlinuxdocs)
@@ -359,7 +359,7 @@ TESTS: 123 passed, 0 failed
 ########## D7 SHAREABLE — self-describing and dependency-honest ##########
 $ dpkg-deb -I /home/pk/zexp1/zlinuxdocs/dist/zlinuxdocs_0.1.0_all.deb
  new Debian package, version 2.0.
- size 1086356 bytes: control archive=6848 bytes.
+ size 1086680 bytes: control archive=6843 bytes.
     1797 bytes,    36 lines      control
    19429 bytes,   224 lines      md5sums
  Package: zlinuxdocs
@@ -408,7 +408,7 @@ drwxr-xr-x root/root         0 2026-08-08 03:01 ./usr/bin/
 drwxr-xr-x root/root         0 2026-08-08 03:01 ./usr/share/
 drwxr-xr-x root/root         0 2026-08-08 03:01 ./usr/share/doc/
 drwxr-xr-x root/root         0 2026-08-08 03:01 ./usr/share/doc/zlinuxdocs/
--rw-r--r-- root/root     14226 2026-08-08 03:01 ./usr/share/doc/zlinuxdocs/README.md
+-rw-r--r-- root/root     14572 2026-08-08 03:01 ./usr/share/doc/zlinuxdocs/README.md
 -rw-r--r-- root/root       538 2026-08-08 03:01 ./usr/share/doc/zlinuxdocs/changelog.Debian.gz
 -rw-r--r-- root/root      4023 2026-08-08 03:01 ./usr/share/doc/zlinuxdocs/copyright
 drwxr-xr-x root/root         0 2026-08-08 03:01 ./usr/share/man/
