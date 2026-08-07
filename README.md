@@ -354,9 +354,15 @@ bash tests/run.sh       # 120+ checks, non-zero exit if any fail
 
 `build-deb.sh` needs only `dpkg-deb`, `python3`, `gzip` and `sed`. No `make`,
 no `dpkg-buildpackage`, no `pip`, no network. It fails loudly on any problem,
-regenerates the example documents, refuses to ship a package containing
-`__pycache__` or a maintainer script, smoke-tests the staged program, and
-prints the artifact path.
+smoke-tests the staged program, refuses to ship a package containing
+`__pycache__` or a maintainer script, writes `md5sums` so `dpkg -V zlinuxdocs`
+works, and prints the artifact path.
+
+The build is **byte-reproducible**: all staged timestamps are normalised to
+`SOURCE_DATE_EPOCH` (defaulting to the release tag's own date), so building
+`v0.1.0` twice — or a year from now — gives the same sha256. It also leaves
+your working tree clean; pass `--regen-samples` if you actually want the
+example documents rebuilt.
 
 To test the *installed* command instead of the source tree:
 

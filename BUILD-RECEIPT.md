@@ -26,8 +26,8 @@ A Linux CLI and a Debian package.
 /usr/share/doc/zlinuxdocs/                README, copyright, changelog
 ```
 
-Artifact: `dist/zlinuxdocs_0.1.0_all.deb` — 1,086,308 bytes,
-sha256 `4a27495e6d01313e382393ca32521a4b4b65afba89d1a47debb22eb37ac05601`,
+Artifact: `dist/zlinuxdocs_0.1.0_all.deb` — 1,086,356 bytes,
+sha256 `91a1f3cefecb85de82050f13d7c5364b9c91a8e47e0e34b290860b1f12ca15d2`,
 270 entries, a control archive of `control` + `md5sums` only (no maintainer
 scripts), no `__pycache__`, no `.pyc`. `sudo dpkg -V zlinuxdocs` returns 0
 against the installed copy.
@@ -442,7 +442,7 @@ still has the tool; see the tail of `dist/proof.log`.)
 ```
 $ dpkg-deb -I /home/pk/zexp1/zlinuxdocs/dist/zlinuxdocs_0.1.0_all.deb
  new Debian package, version 2.0.
- size 1086308 bytes: control archive=6848 bytes.
+ size 1086356 bytes: control archive=6848 bytes.
     1797 bytes,    36 lines      control
    19429 bytes,   224 lines      md5sums
  Package: zlinuxdocs
@@ -496,6 +496,22 @@ $ basename $DEB                -> zlinuxdocs_0.1.0_all.deb
 `build-deb.sh` fails the build if `zlinuxdocs/__version__.py` has drifted from
 `VERSION`, so the four cannot silently diverge.
 
+**The build is byte-reproducible.** All staged timestamps are normalised to
+`SOURCE_DATE_EPOCH`, which defaults to the date of the immutable release tag
+`v0.1.0` (`1786138306`), so the tag rebuilds to the same bytes however many
+commits land afterwards. Observed:
+
+```
+$ ./build-deb.sh >/dev/null && sha256sum dist/zlinuxdocs_0.1.0_all.deb
+91a1f3cefecb85de82050f13d7c5364b9c91a8e47e0e34b290860b1f12ca15d2  dist/zlinuxdocs_0.1.0_all.deb
+$ ./build-deb.sh >/dev/null && sha256sum dist/zlinuxdocs_0.1.0_all.deb
+91a1f3cefecb85de82050f13d7c5364b9c91a8e47e0e34b290860b1f12ca15d2  dist/zlinuxdocs_0.1.0_all.deb
+```
+
+`build-deb.sh` also leaves the working tree clean: it stages the checked-in
+example documents rather than regenerating them (`--regen-samples` is opt-in),
+because python-docx stamps the current time into a `.docx` zip.
+
 ### D8 PUBLISHED — **GREEN**
 
 ```
@@ -512,7 +528,7 @@ $ git ls-remote --heads origin
 [exit 0]
 
 $ gh release view v0.1.0 --repo zexp1/zlinuxdocs --json tagName,url,assets --jq ...
-{"assets":[{"name":"zlinuxdocs_0.1.0_all.deb","size":1086308}],"tag":"v0.1.0","url":"https://github.com/zexp1/zlinuxdocs/releases/tag/v0.1.0"}
+{"assets":[{"name":"zlinuxdocs_0.1.0_all.deb","size":1086356}],"tag":"v0.1.0","url":"https://github.com/zexp1/zlinuxdocs/releases/tag/v0.1.0"}
 [exit 0]
 
 $ gh release view --repo zexp1/zlinuxdocs --json assets --jq '.assets[].name'
@@ -526,9 +542,9 @@ locally built artifact:
 ```
 $ cd /tmp/dlcheck && gh release download v0.1.0 --repo zexp1/zlinuxdocs
 $ sha256sum zlinuxdocs_0.1.0_all.deb
-4a27495e6d01313e382393ca32521a4b4b65afba89d1a47debb22eb37ac05601  zlinuxdocs_0.1.0_all.deb
+91a1f3cefecb85de82050f13d7c5364b9c91a8e47e0e34b290860b1f12ca15d2  zlinuxdocs_0.1.0_all.deb
 $ sha256sum dist/zlinuxdocs_0.1.0_all.deb
-4a27495e6d01313e382393ca32521a4b4b65afba89d1a47debb22eb37ac05601  dist/zlinuxdocs_0.1.0_all.deb
+91a1f3cefecb85de82050f13d7c5364b9c91a8e47e0e34b290860b1f12ca15d2  dist/zlinuxdocs_0.1.0_all.deb
 $ cmp <downloaded> <local> && echo IDENTICAL
 IDENTICAL
 ```
@@ -734,7 +750,7 @@ machine has **not** been tested.
 * **Repository:** https://github.com/zexp1/zlinuxdocs
 * **Release:** https://github.com/zexp1/zlinuxdocs/releases/tag/v0.1.0
 * **Release asset:** `zlinuxdocs_0.1.0_all.deb`
-  (sha256 `4a27495e6d01313e382393ca32521a4b4b65afba89d1a47debb22eb37ac05601`)
+  (sha256 `91a1f3cefecb85de82050f13d7c5364b9c91a8e47e0e34b290860b1f12ca15d2`)
 
 * **Commit pushed:** `695abe4109a6be7f7c477a36151e6b613349b8be` on `main`
   (233 files, 90,850 insertions — the first and only commit; the repository was

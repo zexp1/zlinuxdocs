@@ -28,6 +28,22 @@ for t in dpkg-deb python3 gzip sed find; do
   command -v "$t" >/dev/null 2>&1 || die "'$t' is required to build but is not installed"
 done
 
+# --- 2b. the build clock -----------------------------------------------------
+# One timestamp for the whole build, so two builds of the same source produce a
+# byte-identical .deb. SOURCE_DATE_EPOCH is honoured if set (the
+# reproducible-builds convention). Otherwise the RELEASE TAG's date is used —
+# it is immutable, so v<VERSION> rebuilds to the same bytes however many
+# commits land afterwards — then the last commit, then a fixed constant.
+if [ -z "${SOURCE_DATE_EPOCH:-}" ]; then
+  SOURCE_DATE_EPOCH="$(git -C "$ROOT" log -1 --format=%ct "v$VERSION" 2>/dev/null || true)"
+fi
+if [ -z "${SOURCE_DATE_EPOCH:-}" ]; then
+  SOURCE_DATE_EPOCH="$(git -C "$ROOT" log -1 --format=%ct 2>/dev/null || true)"
+fi
+[ -n "${SOURCE_DATE_EPOCH:-}" ] || SOURCE_DATE_EPOCH=1735689600   # 2025-01-01Z
+export SOURCE_DATE_EPOCH
+echo "    SOURCE_DATE_EPOCH = $SOURCE_DATE_EPOCH"
+
 # --- 3. clean ----------------------------------------------------------------
 step "cleaning previous build"
 rm -rf "$STAGE"
@@ -38,10 +54,24 @@ mkdir -p "$STAGE/DEBIAN" \
          "$STAGE/usr/share/man/man1" \
          "$STAGE/usr/share/doc/zlinuxdocs"
 
-# --- 4. regenerate the example documents -------------------------------------
-step "generating example documents"
-python3 tools/make_samples.py "$ROOT/share/samples" >/dev/null \
-  || die "the example documents could not be generated"
+# --- 4. example documents ----------------------------------------------------
+# The checked-in copies are staged as-is, so two builds of the same source
+# stage identical bytes. They are regenerated ONLY when one is missing or when
+# --regen-samples is asked for, because python-docx stamps the current time
+# into the .docx zip and would otherwise make every build differ.
+REGEN=0
+[ "${1:-}" = "--regen-samples" ] && REGEN=1
+missing=0
+while IFS= read -r name; do
+  [ -f "share/samples/$name" ] || missing=1
+done < <(python3 -c 'import sys; sys.path.insert(0, "tools"); import make_samples; [print(n) for n, _ in make_samples.SAMPLES]')
+if [ "$REGEN" -eq 1 ] || [ "$missing" -eq 1 ]; then
+  step "generating the example documents"
+  python3 tools/make_samples.py "$ROOT/share/samples" >/dev/null \
+    || die "the example documents could not be generated"
+else
+  step "staging the checked-in example documents (--regen-samples rebuilds them)"
+fi
 
 # --- 5. entry script ---------------------------------------------------------
 step "installing the entry script"
@@ -105,7 +135,7 @@ grep -q "^Version: $VERSION$" "$STAGE/DEBIAN/control" \
 
 # --- 12. changelog + copyright + readme -------------------------------------
 step "writing the documentation files"
-DATE_RFC="$(LC_ALL=C date -u '+%a, %d %b %Y %H:%M:%S +0000')"
+DATE_RFC="$(LC_ALL=C date -u -d "@$SOURCE_DATE_EPOCH" '+%a, %d %b %Y %H:%M:%S +0000')"
 sed -e "s/@VERSION@/$VERSION/g" -e "s/@DATE@/$DATE_RFC/g" debian/changelog.in \
   > "$STAGE/usr/share/doc/zlinuxdocs/changelog.Debian"
 gzip -9n "$STAGE/usr/share/doc/zlinuxdocs/changelog.Debian"
@@ -167,10 +197,13 @@ n_md5="$(wc -l < "$STAGE/DEBIAN/md5sums")"
 echo "    $n_md5 files checksummed"
 
 # --- 15. build ---------------------------------------------------------------
+step "normalising timestamps to $SOURCE_DATE_EPOCH (reproducible build)"
+find "$STAGE" -exec touch --no-dereference --date="@$SOURCE_DATE_EPOCH" {} +
+
 DEB="$DIST/zlinuxdocs_${VERSION}_all.deb"
 step "building $DEB"
 rm -f "$DEB"
-dpkg-deb --build --root-owner-group "$STAGE" "$DEB" >/dev/null
+dpkg-deb --build --root-owner-group --uniform-compression "$STAGE" "$DEB" >/dev/null
 
 # --- 16. verify the artifact -------------------------------------------------
 step "verifying the artifact"
