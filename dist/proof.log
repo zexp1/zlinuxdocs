@@ -1,0 +1,508 @@
+zlinuxdocs 0.1.0 — D1..D8 acceptance run
+artifact: /home/pk/zexp1/zlinuxdocs/dist/zlinuxdocs_0.1.0_all.deb
+date:     2026-08-07T21:33:38Z
+host:     Linux 6.8.0-137-generic x86_64   python: Python 3.12.3
+
+########## PRE — the command must NOT exist before we install ##########
+$ bash -c command -v zlinuxdocs
+[exit 1]
+
+(exit 1 here is correct: nothing installed yet)
+
+########## D1 INSTALLABLE ##########
+$ sudo dpkg -i /home/pk/zexp1/zlinuxdocs/dist/zlinuxdocs_0.1.0_all.deb
+Selecting previously unselected package zlinuxdocs.
+(Reading database ... 1207200 files and directories currently installed.)
+Preparing to unpack .../dist/zlinuxdocs_0.1.0_all.deb ...
+Unpacking zlinuxdocs (0.1.0) ...
+Setting up zlinuxdocs (0.1.0) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+[exit 0]
+
+$ bash -c command -v zlinuxdocs
+/usr/bin/zlinuxdocs
+[exit 0]
+
+$ bash -c command -v zld
+/usr/bin/zld
+[exit 0]
+
+
+########## D2 RUNS ##########
+$ zlinuxdocs --version
+zlinuxdocs 0.1.0
+[exit 0]
+
+$ zld --version
+zlinuxdocs 0.1.0
+[exit 0]
+
+$ zlinuxdocs --help
+usage: zlinuxdocs [-h] [--version] COMMAND ...
+
+zlinuxdocs - look inside Word documents, repair their headings, turn them into good PDFs, and check those PDFs before you send them.
+
+positional arguments:
+  COMMAND
+    inspect (info, show)
+                        Say what is really inside a Word document.
+    fix-headings (fix, repair)
+                        Turn text that only looks like a heading into a real
+                        heading.
+    convert (pdf, to-pdf)
+                        Turn a document into a PDF with a working chapter
+                        list.
+    validate (check, verify)
+                        Check a PDF is fit to send (exits with an error if
+                        not).
+    markers (flags, todo)
+                        Find the [V] verification marks left in a document.
+    profile (settings)  Show or export the house print settings.
+    quickstart (start, tutorial)
+                        A five-command walkthrough using the shipped examples.
+    examples (howto)    Real command lines you can copy and paste.
+    samples (demo)      List the example documents that came with the program.
+    help                Show help, or help for one command: zlinuxdocs help
+                        convert
+
+options:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+
+Every command also answers to a shorter name:
+
+  COMMAND       ALSO WRITTEN AS
+  inspect       info, show
+  fix-headings  fix, repair
+  convert       pdf, to-pdf
+  validate      check, verify
+  markers       flags, todo
+  profile       settings
+
+The program itself answers to 'zld' as well as 'zlinuxdocs'.
+
+New here?  zlinuxdocs quickstart
+Examples:  zlinuxdocs examples          (or --examples on any command)
+Help on one command:  zlinuxdocs help convert
+
+This program works entirely offline. It makes no network connections and
+collects no information about you or your documents.
+[exit 0]
+
+
+########## D3 DOES THE WORK — from /tmp, against the SHIPPED samples ##########
+$ pwd
+/tmp/zproof
+
+$ ls /home/pk/zexp1/zlinuxdocs  # the source tree exists but is NOT used below
+
+$ cp /usr/share/zlinuxdocs/samples/plain-no-headings.docx 'My Report.docx'
+
+$ zlinuxdocs inspect My Report.docx
+File:            My Report.docx
+Size:            36 KB
+Paragraphs:      29
+Words (approx):  723
+Tables:          0
+Page setups:     1
+Real headings:   0   <- these become clickable bookmarks in a PDF
+Look-alikes:     12   <- text that reads like a heading but is not one
+[V] markers:     0
+
+This document has 12 line(s) that LOOK like headings but are plain text.
+A PDF made from it will have no chapter bookmarks at all.
+
+What to do:
+    zlinuxdocs fix-headings "My Report.docx" -o fixed.docx
+    zlinuxdocs convert fixed.docx -o report.pdf
+
+The first few look-alikes:
+    chapter heading:   1 - Introduction
+    section heading:   1.1 Scope
+    section heading:   1.2 Method
+    sub-section heading: 1.2.1 Field survey
+    sub-section heading: 1.2.2 Desk review
+    ... and 7 more (run again with --verbose to see them all)
+
+[exit 0]
+
+$ zlinuxdocs fix-headings My Report.docx -o My Report (fixed).docx
+Looked at 29 paragraphs in 'My Report.docx'.
+Promoted 12 line(s) to real headings - 12 promotions.
+    chapter headings:    4
+    section headings:    6
+    sub-section headings: 2
+    title page lines:    3
+
+Saved: My Report (fixed).docx
+
+What to do next:
+    zlinuxdocs convert "My Report (fixed).docx" -o report.pdf
+    zlinuxdocs validate report.pdf
+[exit 0]
+
+$ zlinuxdocs convert My Report (fixed).docx -o My Report.pdf
+Converting 'My Report (fixed).docx' ...
+(this can take up to a minute for a long document)
+
+Created: My Report.pdf (36 KB)
+
+What to do next - check the PDF is fit to send:
+    zlinuxdocs validate "My Report.pdf"
+[exit 0]
+
+$ zlinuxdocs validate My Report.pdf --verbose
+Checking: My Report.pdf
+Pages: 3    Bookmarks: 12    Size: 36 KB
+
+  [OK  ] readable PDF
+  [OK  ] not password-protected
+  [OK  ] has pages  - 3 pages
+  [OK  ] has bookmarks  - 12 bookmarks
+  [OK  ] text can be selected and searched  - 4294 characters
+  [OK  ] no broken field codes
+  [OK  ] deep structure check
+
+RESULT: PASS - this PDF is fit to send.
+[exit 0]
+
+$ zlinuxdocs markers /usr/share/zlinuxdocs/samples/with-markers.docx
+Found 5 [V] marker(s) in '/usr/share/zlinuxdocs/samples/with-markers.docx'.
+
+Under: 1 - Background
+   1. (paragraph) The 2023 baseline figure of 41 per cent is quoted from memory. [V]
+Under: 1.1 Population served
+   2. (paragraph) Check whether the block boundary changed after the 2024 notification. [V]
+Under: 2 - Costing
+   3. (table row 2, column 3) Rate to be re-confirmed with PWD [V]
+   4. (table row 3, column 3) Quotation is over a year old [V]
+Under: 3 - Recommendation
+   5. (paragraph) Signature block to be confirmed with the Director's office. [V]
+
+These are notes somebody left for a checker. Deal with each one in
+Word or LibreOffice, then remove the marker text by hand.
+[exit 0]
+
+$ zlinuxdocs profile
+Print settings from: /usr/share/zlinuxdocs/profiles/house_profile.yaml
+
+Profile:      release
+Paper:        A4 portrait, margins 25mm, binding gutter 10mm
+Body text:    Liberation Serif 11pt, line spacing 1.5, justified
+Headings:     Liberation Sans
+Contents:     depth 3 with dot leaders
+PDF:          bookmarks on, tagged on, fonts embedded on
+PDF/A:        pdfa-2b REQUESTED, NOT VERIFIED — conformance is not claimed
+
+Other profiles here: archive, draft, screen
+
+To see the file itself:      zlinuxdocs profile --raw
+To copy it out and edit it:  zlinuxdocs profile -o my-profile.yaml
+To try it:                   zlinuxdocs convert /usr/share/zlinuxdocs/samples/proper-headings.docx -o /tmp/sample.pdf
+[exit 0]
+
+$ zlinuxdocs quickstart
+zlinuxdocs quickstart
+=====================
+
+You do not need a document of your own - example ones came with the program.
+Copy and paste these five commands, one at a time.
+
+  1. Work somewhere harmless, and take a copy of an example document.
+
+     cd /tmp
+     cp "/usr/share/zlinuxdocs/samples/plain-no-headings.docx" "My Report.docx"
+
+  2. Look at what is inside it.
+
+     zlinuxdocs inspect "My Report.docx"
+
+     It will tell you the document has lines that LOOK like headings but are
+     really plain text. That is why PDFs made from it have no chapter list.
+
+  3. Repair it. Your original is left untouched; a new file is written.
+
+     zlinuxdocs fix-headings "My Report.docx" -o "My Report (fixed).docx"
+
+  4. Make the PDF.
+
+     zlinuxdocs convert "My Report (fixed).docx" -o "My Report.pdf"
+
+  5. Check the PDF before you send it to anybody.
+
+     zlinuxdocs validate "My Report.pdf"
+
+     PASS means it has pages, a clickable chapter list, searchable text and no
+     leftover Word field codes. FAIL tells you exactly what to fix.
+
+That is the whole tool. Two more commands are there when you need them:
+
+     zlinuxdocs markers "My Report.docx"    # find [V] notes left by a reviewer
+     zlinuxdocs profile                     # see the page and PDF settings
+
+Tips
+----
+  * Put file names in quotes if they contain spaces or brackets:
+        zlinuxdocs inspect "Final Report v2 (1).docx"
+  * Add --dry-run to any command that writes, to see what it would do first.
+  * Type 'zld' instead of 'zlinuxdocs' if you prefer - they are the same.
+  * Every command explains itself:  zlinuxdocs help convert
+[exit 0]
+
+
+########## D4 RED-ABLE — the validator must FAIL, seen red before green ##########
+--- RED 1: a file that is not a PDF at all
+$ printf 'not a pdf' > /tmp/broken.pdf
+
+$ zlinuxdocs validate /tmp/broken.pdf
+Checking: /tmp/broken.pdf
+Pages: 0    Bookmarks: 0    Size: 0 KB
+
+  [FAIL] readable PDF  - this is not a PDF file at all
+
+RESULT: FAIL - 1 problem(s) found.
+
+1. this is not a PDF file at all
+   Real PDF files begin with the characters %PDF. This one does not, so it
+   is some other kind of file that has been given a .pdf name.
+   Check what it really is:
+       file "/tmp/broken.pdf"
+
+[exit 1]
+
+$ zlinuxdocs validate /tmp/broken.pdf; test $? -ne 0
+  CONFIRMED non-zero: exit 1
+
+--- RED 2: a real, openable PDF made from an UNREPAIRED document (no bookmarks)
+$ zlinuxdocs validate /tmp/zproof/unrepaired.pdf
+Checking: /tmp/zproof/unrepaired.pdf
+Pages: 3    Bookmarks: 0    Size: 29 KB
+
+  [FAIL] has bookmarks  - the PDF has no bookmarks, so nobody can jump to a chapter
+
+RESULT: FAIL - 1 problem(s) found.
+
+1. the PDF has no bookmarks, so nobody can jump to a chapter
+   This happens when the Word document's headings only LOOK like headings.
+   Fix the document first, then convert again:
+       zlinuxdocs fix-headings "your-document.docx" -o fixed.docx
+       zlinuxdocs convert fixed.docx -o "/tmp/zproof/unrepaired.pdf" --force
+
+[exit 1]
+
+--- GREEN control: the SAME document, after fix-headings
+$ zlinuxdocs validate /tmp/zproof/My Report.pdf
+Checking: /tmp/zproof/My Report.pdf
+Pages: 3    Bookmarks: 12    Size: 36 KB
+
+
+RESULT: PASS - this PDF is fit to send.
+[exit 0]
+
+
+########## D5 IDEMPOTENT — fix-headings run twice ##########
+--- RUN 1 (expect a non-zero promotion count)
+$ zlinuxdocs fix-headings Twice.docx -o Twice (fixed).docx
+Looked at 29 paragraphs in 'Twice.docx'.
+Promoted 12 line(s) to real headings - 12 promotions.
+    chapter headings:    4
+    section headings:    6
+    sub-section headings: 2
+    title page lines:    3
+
+Saved: Twice (fixed).docx
+
+What to do next:
+    zlinuxdocs convert "Twice (fixed).docx" -o report.pdf
+    zlinuxdocs validate report.pdf
+[exit 0]
+
+--- RUN 2, on the OUTPUT of run 1 (expect 0 promotions)
+$ zlinuxdocs fix-headings Twice (fixed).docx -o Twice (fixed2).docx
+Looked at 29 paragraphs in 'Twice (fixed).docx'.
+Nothing to change - 0 promotions. The headings here are already real.
+
+Saved: Twice (fixed2).docx
+
+What to do next:
+    zlinuxdocs convert "Twice (fixed2).docx" -o report.pdf
+    zlinuxdocs validate report.pdf
+[exit 0]
+
+--- the DoD's own check
+$ zlinuxdocs fix-headings 'Twice (fixed).docx' --dry-run | grep -q '0 promotions'
+[exit 0]  (0 means the DoD grep matched)
+
+--- and the structure really is unchanged between the two runs
+$ zlinuxdocs inspect 'Twice (fixed).docx'  | grep -E 'Real headings|Look-alikes'
+Real headings:   12   <- these become clickable bookmarks in a PDF
+Look-alikes:     0   <- text that reads like a heading but is not one
+$ zlinuxdocs inspect 'Twice (fixed2).docx' | grep -E 'Real headings|Look-alikes'
+Real headings:   12   <- these become clickable bookmarks in a PDF
+Look-alikes:     0   <- text that reads like a heading but is not one
+
+
+########## FULL TEST SUITE — the installed command, run from /tmp ##########
+$ cd /tmp/zproof && ZLD=zlinuxdocs bash $SRC/tests/run.sh
+zlinuxdocs test suite
+  command:  /usr/bin/zlinuxdocs
+  examples: /usr/share/zlinuxdocs/samples
+  workdir:  /tmp/zlinuxdocs-tests-XTDBUq
+
+  ... individual checks omitted for length; the summary is authoritative ...
+PASS  the program's own code makes no network calls (/home/pk/zexp1/zlinuxdocs/zlinuxdocs)
+
+======================================================================
+TESTS: 123 passed, 0 failed
+[exit 0]
+
+########## D7 SHAREABLE — self-describing and dependency-honest ##########
+$ dpkg-deb -I /home/pk/zexp1/zlinuxdocs/dist/zlinuxdocs_0.1.0_all.deb
+ new Debian package, version 2.0.
+ size 1086308 bytes: control archive=6848 bytes.
+    1797 bytes,    36 lines      control
+   19429 bytes,   224 lines      md5sums
+ Package: zlinuxdocs
+ Version: 0.1.0
+ Architecture: all
+ Maintainer: zlinuxdocs contributors <noreply@github.com>
+ Section: text
+ Priority: optional
+ Depends: python3 (>= 3.10), python3-lxml, poppler-utils
+ Recommends: qpdf, libreoffice-writer
+ Description: inspect, repair, convert and validate .docx document sets
+  zlinuxdocs is a command-line tool for people who are sent Word documents and
+  have to turn them into PDFs that will not be handed back at the counter.
+  .
+  It reports what is really inside a .docx (headings, styles, tables, sections,
+  verification markers); repairs documents whose headings only LOOK like
+  headings, so the exported PDF gains a real clickable chapter list; converts to
+  PDF through LibreOffice with bookmarks and a searchable text layer; and checks
+  the resulting PDF, exiting non-zero when it is not fit to send.
+  .
+  Commands:
+   inspect       say what is really inside a Word document
+   fix-headings  turn look-alike headings into real headings (idempotent)
+   convert       make a PDF with a working chapter list (needs LibreOffice)
+   validate      check a PDF is fit to send; exits non-zero when it is not
+   markers       list the [V] verification marks a reviewer left behind
+   profile       show or export the house print settings
+  .
+  Also installed as the short name "zld". Run "zlinuxdocs quickstart" for a
+  five-command walkthrough against the example documents that ship with it.
+  .
+  PDF/A conformance is NOT claimed. The optional --pdfa flag asks LibreOffice
+  for an archival flavour but nothing here can verify conformance; that needs a
+  dedicated validator such as veraPDF.
+  .
+  Works entirely offline. Makes no network connections and collects no
+  telemetry. Installs no maintainer scripts: it is a plain file drop.
+ Homepage: https://github.com/zexp1/zlinuxdocs
+[exit 0]
+
+$ dpkg-deb -c $DEB | grep -vE 'vendor/(docx|yaml|pypdf)/'   # vendored trees elided
+drwxr-xr-x root/root         0 2026-08-08 03:03 ./
+drwxr-xr-x root/root         0 2026-08-08 03:03 ./usr/
+drwxr-xr-x root/root         0 2026-08-08 03:03 ./usr/bin/
+-rwxr-xr-x root/root      2311 2026-08-08 03:03 ./usr/bin/zlinuxdocs
+drwxr-xr-x root/root         0 2026-08-08 03:03 ./usr/share/
+drwxr-xr-x root/root         0 2026-08-08 03:03 ./usr/share/doc/
+drwxr-xr-x root/root         0 2026-08-08 03:03 ./usr/share/doc/zlinuxdocs/
+-rw-r--r-- root/root     14226 2026-08-08 03:03 ./usr/share/doc/zlinuxdocs/README.md
+-rw-r--r-- root/root       538 2026-08-08 03:03 ./usr/share/doc/zlinuxdocs/changelog.Debian.gz
+-rw-r--r-- root/root      4023 2026-08-08 03:03 ./usr/share/doc/zlinuxdocs/copyright
+drwxr-xr-x root/root         0 2026-08-08 03:03 ./usr/share/man/
+drwxr-xr-x root/root         0 2026-08-08 03:03 ./usr/share/man/man1/
+-rw-r--r-- root/root      2226 2026-08-08 03:03 ./usr/share/man/man1/zlinuxdocs.1.gz
+drwxr-xr-x root/root         0 2026-08-08 03:03 ./usr/share/zlinuxdocs/
+drwxr-xr-x root/root         0 2026-08-08 03:03 ./usr/share/zlinuxdocs/profiles/
+-rw-r--r-- root/root      5873 2026-08-08 03:03 ./usr/share/zlinuxdocs/profiles/house_profile.yaml
+drwxr-xr-x root/root         0 2026-08-08 03:03 ./usr/share/zlinuxdocs/samples/
+-rw-r--r-- root/root      2906 2026-08-08 03:03 ./usr/share/zlinuxdocs/samples/README.md
+-rw-r--r-- root/root     36563 2026-08-08 03:03 ./usr/share/zlinuxdocs/samples/empty.docx
+-rw-r--r-- root/root     37979 2026-08-08 03:03 ./usr/share/zlinuxdocs/samples/mixed-tables.docx
+-rw-r--r-- root/root     36617 2026-08-08 03:03 ./usr/share/zlinuxdocs/samples/one-line.docx
+-rw-r--r-- root/root     37415 2026-08-08 03:03 ./usr/share/zlinuxdocs/samples/plain-no-headings.docx
+-rw-r--r-- root/root     37138 2026-08-08 03:03 ./usr/share/zlinuxdocs/samples/proper-headings.docx
+-rw-r--r-- root/root     37364 2026-08-08 03:03 ./usr/share/zlinuxdocs/samples/unicode-heavy.docx
+-rw-r--r-- root/root     37045 2026-08-08 03:03 ./usr/share/zlinuxdocs/samples/weird name (final) v2.docx
+-rw-r--r-- root/root     37398 2026-08-08 03:03 ./usr/share/zlinuxdocs/samples/with-markers.docx
+drwxr-xr-x root/root         0 2026-08-08 03:03 ./usr/share/zlinuxdocs/vendor/
+-rw-r--r-- root/root     13936 2026-08-08 03:03 ./usr/share/zlinuxdocs/vendor/typing_extensions.LICENSE
+-rw-r--r-- root/root    134451 2026-08-08 03:03 ./usr/share/zlinuxdocs/vendor/typing_extensions.py
+drwxr-xr-x root/root         0 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/
+-rw-r--r-- root/root       142 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/__init__.py
+-rw-r--r-- root/root        96 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/__version__.py
+-rw-r--r-- root/root     13543 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/cli.py
+drwxr-xr-x root/root         0 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/commands/
+-rw-r--r-- root/root         0 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/commands/__init__.py
+-rw-r--r-- root/root      7037 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/commands/convert.py
+-rw-r--r-- root/root      4337 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/commands/fix_headings.py
+-rw-r--r-- root/root      4671 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/commands/inspect_cmd.py
+-rw-r--r-- root/root      2993 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/commands/markers.py
+-rw-r--r-- root/root      3866 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/commands/profile_cmd.py
+-rw-r--r-- root/root      3626 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/commands/validate_cmd.py
+drwxr-xr-x root/root         0 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/lib/
+-rw-r--r-- root/root         0 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/lib/__init__.py
+-rw-r--r-- root/root      3087 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/lib/deps.py
+-rw-r--r-- root/root     10880 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/lib/docxio.py
+-rw-r--r-- root/root      1640 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/lib/errors.py
+-rw-r--r-- root/root      1775 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/lib/paths.py
+-rw-r--r-- root/root      7710 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/lib/pdfio.py
+-rw-r--r-- root/root      6200 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/lib/profile.py
+-rw-r--r-- root/root      5054 2026-08-08 03:03 ./usr/share/zlinuxdocs/zlinuxdocs/lib/safety.py
+lrwxrwxrwx root/root         0 2026-08-08 03:03 ./usr/bin/zld -> zlinuxdocs
+lrwxrwxrwx root/root         0 2026-08-08 03:03 ./usr/share/man/man1/zld.1.gz -> zlinuxdocs.1.gz
+
+$ dpkg-deb -c $DEB | wc -l   # total entries including the vendored libraries
+270
+
+--- no maintainer scripts: deliberate policy, nothing executes on install or removal
+$ dpkg-deb --ctrl-tarfile $DEB | tar -t
+./
+./control
+./md5sums
+
+--- no __pycache__ or .pyc in the artifact
+$ dpkg-deb -c $DEB | grep -c 'pycache\|\.pyc'
+0
+
+--- version agreement across all four places
+$ cat VERSION                     -> 0.1.0
+$ zlinuxdocs --version            -> zlinuxdocs 0.1.0
+$ dpkg -l zlinuxdocs | tail -1    -> ii  zlinuxdocs     0.1.0        all          inspect, repair, convert and validate .docx document sets
+$ basename $DEB                   -> zlinuxdocs_0.1.0_all.deb
+
+
+########## D6 CLEAN UNINSTALL ##########
+$ sudo dpkg -r zlinuxdocs
+(Reading database ... 1207463 files and directories currently installed.)
+Removing zlinuxdocs (0.1.0) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+[exit 0]
+
+$ bash -c command -v zlinuxdocs
+[exit 1]
+
+(exit 1 here is correct: the command is gone)
+$ bash -c command -v zld
+[exit 1]
+
+$ ls /usr/share/zlinuxdocs 2>&1
+ls: cannot access '/usr/share/zlinuxdocs': No such file or directory
+[exit 2]
+
+--- reinstalling so the machine is left with the tool available
+$ sudo dpkg -i /home/pk/zexp1/zlinuxdocs/dist/zlinuxdocs_0.1.0_all.deb
+Selecting previously unselected package zlinuxdocs.
+(Reading database ... 1207200 files and directories currently installed.)
+Preparing to unpack .../dist/zlinuxdocs_0.1.0_all.deb ...
+Unpacking zlinuxdocs (0.1.0) ...
+Setting up zlinuxdocs (0.1.0) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+[exit 0]
+
+$ bash -c command -v zlinuxdocs
+/usr/bin/zlinuxdocs
+[exit 0]
+

@@ -156,6 +156,16 @@ for s in preinst postinst prerm postrm config; do
   [ ! -e "$STAGE/DEBIAN/$s" ] || die "a maintainer script ($s) was staged; this package ships none"
 done
 
+# md5sums, so `debsums zlinuxdocs` can tell the user whether their install is
+# intact. Paths are relative to / and sorted, so the file is reproducible.
+step "writing DEBIAN/md5sums"
+( cd "$STAGE" && find . -type f -not -path './DEBIAN/*' -printf '%P\0' \
+    | sort -z | xargs -0 md5sum ) > "$STAGE/DEBIAN/md5sums"
+chmod 0644 "$STAGE/DEBIAN/md5sums"
+n_md5="$(wc -l < "$STAGE/DEBIAN/md5sums")"
+[ "$n_md5" -gt 100 ] || die "md5sums lists only $n_md5 files; that cannot be right"
+echo "    $n_md5 files checksummed"
+
 # --- 15. build ---------------------------------------------------------------
 DEB="$DIST/zlinuxdocs_${VERSION}_all.deb"
 step "building $DEB"
@@ -181,6 +191,13 @@ grep -q 'usr/share/man/man1/zlinuxdocs.1.gz' <<<"$DEB_LIST" || die "the manual p
 grep -q 'usr/share/doc/zlinuxdocs/copyright' <<<"$DEB_LIST" || die "the copyright file is missing"
 grep -q 'usr/bin/zld -> zlinuxdocs'          <<<"$DEB_LIST" || die "the zld symlink does not point at zlinuxdocs"
 ! grep -q '__pycache__\|\.pyc' <<<"$DEB_LIST" || die "__pycache__/.pyc leaked into the .deb"
+
+CTRL="$(dpkg-deb --ctrl-tarfile "$DEB" | tar -t)"
+grep -qx './control' <<<"$CTRL" || die "the control file is missing from the control archive"
+grep -qx './md5sums' <<<"$CTRL" || die "md5sums is missing from the control archive"
+for s in preinst postinst prerm postrm config; do
+  ! grep -qx "./$s" <<<"$CTRL" || die "a maintainer script ($s) reached the .deb"
+done
 
 n_deb_samples="$(grep -c 'usr/share/zlinuxdocs/samples/.*\.docx' <<<"$DEB_LIST" || true)"
 [ "$n_deb_samples" -ge 2 ] || die "only $n_deb_samples example document(s) in the .deb"

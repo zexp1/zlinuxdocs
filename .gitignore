@@ -8,3 +8,6 @@ tests/tmp/
 *.bak[0-9]
 .DS_Store
 *.swp
+
+# the acceptance transcript is the receipt; keep it tracked
+!dist/proof.log

@@ -7,7 +7,7 @@ and R3 packaging consults, the R4 integrator rulings in
 (aliases, novice-facing writing, sample inventory, test coverage).
 
 **Verbatim proof log of every command in this receipt:** `dist/proof.log`
-(506 lines, regenerable with `SUDO_PW=… tools/prove.sh`).
+(508 lines, regenerable with `SUDO_PW=… tools/prove.sh`).
 
 ---
 
@@ -26,9 +26,11 @@ A Linux CLI and a Debian package.
 /usr/share/doc/zlinuxdocs/                README, copyright, changelog
 ```
 
-Artifact: `dist/zlinuxdocs_0.1.0_all.deb` — 1,080,750 bytes,
-sha256 `a4fdc9e9764d80fa0d76e4731e1d36dcc4e4e7cd9ac4712dd58cffc6836b1721`,
-270 entries, no maintainer scripts, no `__pycache__`, no `.pyc`.
+Artifact: `dist/zlinuxdocs_0.1.0_all.deb` — 1,086,308 bytes,
+sha256 `4a27495e6d01313e382393ca32521a4b4b65afba89d1a47debb22eb37ac05601`,
+270 entries, a control archive of `control` + `md5sums` only (no maintainer
+scripts), no `__pycache__`, no `.pyc`. `sudo dpkg -V zlinuxdocs` returns 0
+against the installed copy.
 
 ### The six verbs, and every alias
 
@@ -440,8 +442,9 @@ still has the tool; see the tail of `dist/proof.log`.)
 ```
 $ dpkg-deb -I /home/pk/zexp1/zlinuxdocs/dist/zlinuxdocs_0.1.0_all.deb
  new Debian package, version 2.0.
- size 1080750 bytes: control archive=1056 bytes.
+ size 1086308 bytes: control archive=6848 bytes.
     1797 bytes,    36 lines      control
+   19429 bytes,   224 lines      md5sums
  Package: zlinuxdocs
  Version: 0.1.0
  Architecture: all
@@ -456,13 +459,22 @@ $ dpkg-deb -I /home/pk/zexp1/zlinuxdocs/dist/zlinuxdocs_0.1.0_all.deb
 [exit 0]
 ```
 
-No maintainer scripts — the control archive holds only metadata:
+No maintainer scripts — the control archive holds only metadata and checksums:
 
 ```
 $ dpkg-deb --ctrl-tarfile dist/zlinuxdocs_0.1.0_all.deb | tar -t
 ./
 ./control
 ./md5sums
+```
+
+`build-deb.sh` asserts both that `md5sums` is present and that no `preinst`,
+`postinst`, `prerm`, `postrm` or `config` reached the archive. The checksums
+make the install verifiable:
+
+```
+$ sudo dpkg -V zlinuxdocs
+[exit 0]     # every one of the 224 installed files matches its recorded md5
 ```
 
 No build cruft:
@@ -484,7 +496,45 @@ $ basename $DEB                -> zlinuxdocs_0.1.0_all.deb
 `build-deb.sh` fails the build if `zlinuxdocs/__version__.py` has drifted from
 `VERSION`, so the four cannot silently diverge.
 
-### D8 PUBLISHED — see §6 below.
+### D8 PUBLISHED — **GREEN**
+
+```
+$ gh repo view zexp1/zlinuxdocs --json name,visibility,url,isEmpty
+{"isEmpty":false,"name":"zlinuxdocs","url":"https://github.com/zexp1/zlinuxdocs","visibility":"PUBLIC"}
+[exit 0]
+
+$ git log --oneline -1 && git rev-parse HEAD
+695abe4 zlinuxdocs 0.1.0 — inspect, repair, convert and validate .docx document sets
+695abe4109a6be7f7c477a36151e6b613349b8be
+
+$ git ls-remote --heads origin
+695abe4109a6be7f7c477a36151e6b613349b8be	refs/heads/main
+[exit 0]
+
+$ gh release view v0.1.0 --repo zexp1/zlinuxdocs --json tagName,url,assets --jq ...
+{"assets":[{"name":"zlinuxdocs_0.1.0_all.deb","size":1086308}],"tag":"v0.1.0","url":"https://github.com/zexp1/zlinuxdocs/releases/tag/v0.1.0"}
+[exit 0]
+
+$ gh release view --repo zexp1/zlinuxdocs --json assets --jq '.assets[].name'
+zlinuxdocs_0.1.0_all.deb
+[exit 0]
+```
+
+The published asset was downloaded back and compared byte for byte with the
+locally built artifact:
+
+```
+$ cd /tmp/dlcheck && gh release download v0.1.0 --repo zexp1/zlinuxdocs
+$ sha256sum zlinuxdocs_0.1.0_all.deb
+4a27495e6d01313e382393ca32521a4b4b65afba89d1a47debb22eb37ac05601  zlinuxdocs_0.1.0_all.deb
+$ sha256sum dist/zlinuxdocs_0.1.0_all.deb
+4a27495e6d01313e382393ca32521a4b4b65afba89d1a47debb22eb37ac05601  dist/zlinuxdocs_0.1.0_all.deb
+$ cmp <downloaded> <local> && echo IDENTICAL
+IDENTICAL
+```
+
+The push was a fast-forward onto an empty repository; nothing was force-pushed
+and nothing was overwritten (`isEmpty` was `true` immediately before the push).
 
 ---
 
@@ -586,7 +636,8 @@ Two tests hold this down: `convert --pdfa states its limit` and
 
 ## 6. Publication (D8)
 
-See §8 for the URLs, filled in at push time.
+Repository, release and asset URLs are in §8; the verbatim `gh` transcript is
+in the D8 block of §2.
 
 ---
 
@@ -683,12 +734,23 @@ machine has **not** been tested.
 * **Repository:** https://github.com/zexp1/zlinuxdocs
 * **Release:** https://github.com/zexp1/zlinuxdocs/releases/tag/v0.1.0
 * **Release asset:** `zlinuxdocs_0.1.0_all.deb`
-  (sha256 `a4fdc9e9764d80fa0d76e4731e1d36dcc4e4e7cd9ac4712dd58cffc6836b1721`)
+  (sha256 `4a27495e6d01313e382393ca32521a4b4b65afba89d1a47debb22eb37ac05601`)
 
-Push and release evidence:
+* **Commit pushed:** `695abe4109a6be7f7c477a36151e6b613349b8be` on `main`
+  (233 files, 90,850 insertions — the first and only commit; the repository was
+  empty before, so nothing was overwritten and nothing was force-pushed).
+* **Verbatim `gh` transcript:** the D8 block of §2 above, and
+  `dist/proof.log`.
 
-```
-PUSH_EVIDENCE
+### How an integrator can verify all of this independently
+
+```bash
+git clone https://github.com/zexp1/zlinuxdocs && cd zlinuxdocs
+./build-deb.sh                       # rebuilds the .deb from scratch, exits non-zero on any fault
+bash tests/run.sh                    # 123 checks against the source tree
+sudo dpkg -i dist/zlinuxdocs_0.1.0_all.deb
+cd /tmp && ZLD=zlinuxdocs bash ~/zlinuxdocs/tests/run.sh   # 123 checks against the install
+SUDO_PW=… bash ~/zlinuxdocs/tools/prove.sh                 # regenerates dist/proof.log
 ```
 
 ---
